@@ -260,4 +260,6 @@ class Tests {
     }
 }
 
-const t = (new Tests()).run();
+// const t = (new Tests()).run();
+
+return Random;
