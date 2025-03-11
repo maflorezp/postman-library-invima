@@ -195,4 +195,4 @@ class Random {
 
 }
 
-if(typeof module !== 'undefined') module.exports = Random; else return Random;
+if (typeof module !== 'undefined') module.exports = Random;
