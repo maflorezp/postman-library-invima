@@ -8,6 +8,32 @@ class Invima {
         this.pm.environment.set('back_general', host + '/apps/back_general');
     }
 
+    sendRequestAsync(req) {
+        return new Promise((resolve, reject) => {
+            this.pm.sendRequest(req, (err, res) => {
+                if (err) reject(err);
+                else resolve(res);
+            });
+        });
+    }
+
+    getRequest(url) {
+        return this.sendRequestAsync({
+            url: this.getUrl('back_general') + url,
+            method: 'GET',
+            header: {'Content-Type': 'application/json'},
+        });
+    }
+
+    graphqlRequest(query, requireAuth = false) {
+        return this.sendRequestAsync({
+            url: this.getGraphUrl('back_general'),
+            method: 'POST',
+            header: {'Content-Type': 'application/json'},
+            body: {mode: 'raw', raw: JSON.stringify({query: query})}
+        });
+    }
+
     getUrl(workspace) {
         const host = this.pm.environment.get('host');
 
@@ -18,22 +44,11 @@ class Invima {
         return this.getUrl(workspace) + '/graphql';
     }
 
-    duplicateFile(environmentVariable) {
-        this.pm.sendRequest({
-            url: this.getUrl('back_general') + '/duplicateFile/',
-            method: 'GET',
-            header: {'Content-Type': 'application/json'},
-        }, (err, response) => {
-            if (err) {
-                this.console.error(err);
-            } else {
-                const data = response.json();
-                this.pm.environment.set(environmentVariable, data.id);
-            }
-        });
+    async duplicateFile() {
+        return (await this.getRequest('/duplicateFile/')).json().id;
     }
 
-    getCaptcha(request) {
+    async getCaptcha(request) {
         const query = `
             query GetCaptcha {
                 getCaptcha {
@@ -43,32 +58,27 @@ class Invima {
             }
         `;
 
-        this.pm.sendRequest({
-            url: this.getGraphUrl('back_general'),
-            method: 'POST',
-            header: {'Content-Type': 'application/json'},
-            body: {mode: 'raw', raw: JSON.stringify({query: query})}
-        }, (err, response) => {
-            if (err) {
-                this.console.error(err);
-            } else {
-                const data = response.json().data.getCaptcha;
-                this.pm.environment.set('captchaKey', data.key);
-                this.pm.environment.set('captchaValue', data.value);
-            }
-        });
+        const {key, value} = (await this.graphqlRequest(query)).json().data.getCaptcha;
+        this.pm.environment.set('captchaKey', key);
+        this.pm.environment.set('captchaValue', value);
     }
 
-    companyInfo() {
-        this.pm.environment.set('url', this.rand.url());
-        this.pm.environment.set('nit', this.rand.nit());
-        this.pm.environment.set('localizationType', this.rand.item('localizationType'));
-        this.pm.environment.set('socioeconomicStratum', this.rand.item('socioeconomicStratum'));
-        this.pm.environment.set('ordinaryActivityRevenue', this.rand.randomInt(1000000000, 10000000000));
-        this.pm.environment.set('economicSector', this.rand.item('economicSector'));
-        this.pm.environment.set('mainEconomicActivity', this.rand.item('mainEconomicActivity'));
-        this.pm.environment.set('ordinanceDate', this.rand.date({min: -730}));
-        this.duplicateFile('incomeCertificationFileId');
+    async companyInfo() {
+        const userId = this.pm.environment.get('authUserId');
+        if (userId) {
+            this.login(userId)
+            this.pm.environment.set('url', this.rand.url());
+            this.pm.environment.set('nit', this.rand.nit());
+            this.pm.environment.set('localizationType', this.rand.item('localizationType'));
+            this.pm.environment.set('socioeconomicStratum', this.rand.item('socioeconomicStratum'));
+            this.pm.environment.set('ordinaryActivityRevenue', this.rand.randomInt(1000000000, 10000000000));
+            this.pm.environment.set('economicSector', this.rand.item('economicSector'));
+            this.pm.environment.set('mainEconomicActivity', this.rand.item('mainEconomicActivity'));
+            this.pm.environment.set('ordinanceDate', this.rand.date({min: -730}));
+            this.pm.environment.set('incomeCertificationFileId', await this.duplicateFile());
+        } else {
+            console.error('No se encuentra authUserId');
+        }
     }
 
     foodInfo() {

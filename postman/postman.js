@@ -75,6 +75,17 @@ class pm {
             unset: (varName) => {
             }
         };
+        /**
+         * Objeto de cookies
+         * @type {Object}
+         */
+        this.variables = {
+            get: (varName) => null,
+            set: (varName, value) => {
+            },
+            unset: (varName) => {
+            }
+        };
     }
 
     /**
