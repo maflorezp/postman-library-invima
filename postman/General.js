@@ -1,4 +1,4 @@
-class Invima {
+class General {
 
     constructor(pm, console, rand = null) {
         this.pm = pm;
@@ -26,10 +26,18 @@ class Invima {
     }
 
     graphqlRequest(query, requireAuth = false) {
+        let header = {'Content-Type': 'application/json'};
+        if (requireAuth) {
+            const token = this.pm.environment.get('authToken');
+            if (!token) {
+                throw new Error('No se encuentra el token de autenticación');
+            }
+            header['Authorization'] = 'Bearer ' + this.pm.environment.get('authToken');
+        }
         return this.sendRequestAsync({
             url: this.getGraphUrl('back_general'),
             method: 'POST',
-            header: {'Content-Type': 'application/json'},
+            header: header,
             body: {mode: 'raw', raw: JSON.stringify({query: query})}
         });
     }
@@ -64,21 +72,20 @@ class Invima {
     }
 
     async companyInfo() {
-        const userId = this.pm.environment.get('authUserId');
-        if (userId) {
-            this.login(userId)
-            this.pm.environment.set('url', this.rand.url());
-            this.pm.environment.set('nit', this.rand.nit());
-            this.pm.environment.set('localizationType', this.rand.item('localizationType'));
-            this.pm.environment.set('socioeconomicStratum', this.rand.item('socioeconomicStratum'));
-            this.pm.environment.set('ordinaryActivityRevenue', this.rand.randomInt(1000000000, 10000000000));
-            this.pm.environment.set('economicSector', this.rand.item('economicSector'));
-            this.pm.environment.set('mainEconomicActivity', this.rand.item('mainEconomicActivity'));
-            this.pm.environment.set('ordinanceDate', this.rand.date({min: -730}));
-            this.pm.environment.set('incomeCertificationFileId', await this.duplicateFile());
-        } else {
-            console.error('No se encuentra authUserId');
+        let userId;
+        if (!(userId = this.pm.environment.get('authUserId'))) {
+            throw new Error('No se encuentra authUserId');
         }
+        this.login(userId)
+        this.pm.environment.set('url', this.rand.url());
+        this.pm.environment.set('nit', this.rand.nit());
+        this.pm.environment.set('localizationType', this.rand.item('localizationType'));
+        this.pm.environment.set('socioeconomicStratum', this.rand.item('socioeconomicStratum'));
+        this.pm.environment.set('ordinaryActivityRevenue', this.rand.randomInt(1000000000, 10000000000));
+        this.pm.environment.set('economicSector', this.rand.item('economicSector'));
+        this.pm.environment.set('mainEconomicActivity', this.rand.item('mainEconomicActivity'));
+        this.pm.environment.set('ordinanceDate', this.rand.date({min: -730}));
+        this.pm.environment.set('incomeCertificationFileId', await this.duplicateFile());
     }
 
     foodInfo() {
@@ -108,22 +115,13 @@ class Invima {
                 url: this.getUrl('back_general') + '/login/' + userId,
                 method: 'GET',
                 header: {'Content-Type': 'application/json'},
-            }, (err, response) => {
-                if (err) {
-                    this.console.error(err);
-                } else {
-                    const jsonResponse = response.json();
-                    if (jsonResponse && jsonResponse.token) {
-                        this.pm.environment.set('authToken', jsonResponse.token);
-                        this.pm.environment.set('authTokenExpiration', jsonResponse.expirationTime);
-                        this.pm.environment.set('authTokenUserId', userId);
-                    } else {
-                        this.console.error('No se pudo obtener el token de la respuesta');
-                    }
-                }
+            }, (err, res) => {
+                if (err) reject(err);
+                else resolve(res);
             });
         }
     }
 }
 
-return Invima;
+// noinspection JSAnnotator
+return General;
