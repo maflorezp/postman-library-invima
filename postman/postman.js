@@ -1,3 +1,5 @@
+const module = {};
+
 /**
  * Clase dummy que simula el entorno de Postman para desarrollo
  */
@@ -105,10 +107,11 @@ class pm {
     /**
      * Envía una solicitud HTTP
      * @param {Object} request - Configuración de la solicitud
-     * @returns {Promise<Object>}
+     * @param {Function} callback - Función de callback
+     * @returns function
      */
-    sendRequest(request) {
-        return Promise.resolve({});
+    sendRequest(request, callback) {
+        return callback();
     }
 
     /**
