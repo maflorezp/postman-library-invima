@@ -107,21 +107,19 @@ class General {
         this.pm.environment.set('socioeconomicStratum', this.rand.item('socioeconomicStratum'));
     }
 
-    login(userId) {
+    async login(userId) {
         const tokenExpirationTime = this.pm.environment.get('authTokenExpiration');
         const tokenUserId = this.pm.environment.get('authTokenUserId');
         if (!tokenExpirationTime || !tokenUserId || tokenUserId !== userId || tokenExpirationTime < Date.now()) {
-            this.pm.sendRequest({
-                url: this.getUrl('back_general') + '/login/' + userId,
-                method: 'GET',
-                header: {'Content-Type': 'application/json'},
-            }, (err, res) => {
-                if (err) reject(err);
-                else resolve(res);
-            });
+            const jsonResponse = (await this.getRequest('/login/' + userId)).json();
+            if (!jsonResponse || !jsonResponse.token || !jsonResponse.expirationTime) {
+                throw new Error('No se pudo obtener el token de la respuesta');
+            }
+            this.pm.environment.set('authToken', jsonResponse.token);
+            this.pm.environment.set('authTokenExpiration', jsonResponse.expirationTime);
+            this.pm.environment.set('authTokenUserId', userId);
         }
     }
 }
 
-// noinspection JSAnnotator
-return General;
+if (typeof module !== 'undefined') module.exports = General;
