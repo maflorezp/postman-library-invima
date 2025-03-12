@@ -10,6 +10,7 @@ class General {
 
     sendRequestAsync(req) {
         return new Promise((resolve, reject) => {
+            // noinspection JSIgnoredPromiseFromCall
             this.pm.sendRequest(req, (err, res) => {
                 if (err) reject(err);
                 else resolve(res);
@@ -43,8 +44,6 @@ class General {
     }
 
     getUrl(workspace) {
-        const host = this.pm.environment.get('host');
-
         return this.pm.environment.get(workspace);
     }
 
@@ -56,7 +55,7 @@ class General {
         return (await this.getRequest('/duplicateFile/')).json().id;
     }
 
-    async getCaptcha(request) {
+    async getCaptcha() {
         const query = `
             query GetCaptcha {
                 getCaptcha {
