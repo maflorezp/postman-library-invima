@@ -118,6 +118,11 @@ class pm {
             },
             has: (varName) => this._variables.has(varName)
         };
+
+        this.execution = {
+            skipRequest: () => {
+            },
+        }
     }
 
     /**
