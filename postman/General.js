@@ -31,7 +31,7 @@ class General {
         if (requireAuth) {
             const token = this.pm.environment.get('authToken');
             if (!token) {
-                throw new Error('No se encuentra el token de autenticación');
+                this.error('No se encuentra el token de autenticación');
             }
             header['Authorization'] = 'Bearer ' + this.pm.environment.get('authToken');
         }
@@ -73,7 +73,7 @@ class General {
     async companyInfo() {
         let userId;
         if (!(userId = this.pm.environment.get('authUserId'))) {
-            throw new Error('No se encuentra authUserId');
+            this.error('No se encuentra authUserId');
         }
         this.login(userId)
         this.pm.environment.set('url', this.rand.url());
@@ -87,9 +87,14 @@ class General {
         this.pm.environment.set('incomeCertificationFileId', await this.duplicateFile());
     }
 
-    foodInfo() {
-
+    async plantsInfo() {
+        let userId;
+        if (!(userId = this.pm.environment.get('authUserId'))) {
+            throw new Error('No se encuentra authUserId');
+        }
+        await this.login(userId);
     }
+
 
     userInfo() {
         this.pm.environment.set('email', this.rand.email());
@@ -112,12 +117,20 @@ class General {
         if (!tokenExpirationTime || !tokenUserId || tokenUserId !== userId || tokenExpirationTime < Date.now()) {
             const jsonResponse = (await this.getRequest('/login/' + userId)).json();
             if (!jsonResponse || !jsonResponse.token || !jsonResponse.expirationTime) {
-                throw new Error('No se pudo obtener el token de la respuesta');
+                this.error('No se pudo obtener el token de la respuesta');
             }
             this.pm.environment.set('authToken', jsonResponse.token);
             this.pm.environment.set('authTokenExpiration', jsonResponse.expirationTime);
             this.pm.environment.set('authTokenUserId', userId);
         }
+    }
+
+    log(...args) {
+        this.console.log(...args);
+    }
+
+    error(message) {
+        throw new Error(message);
     }
 }
 
