@@ -57,12 +57,20 @@ class Tests {
         console.log("8 short words:", this.rand.generateWords(8, 3, 5));
     }
 
-    run() {
-        t.testRandomInt();
-        this.testRandomString();
-        this.testUrl();
-        this.testWords();
+    testNit() {
+        for (let i = 0; i < 10; i++) {
+            console.log(this.rand.nit());
+        }
     }
+
+    run() {
+        // t.testRandomInt();
+        // this.testRandomString();
+        // this.testUrl();
+        // this.testWords();
+        this.testNit();
+    }
+
 }
 
 const t = new Tests();

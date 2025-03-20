@@ -61,13 +61,15 @@ class General {
                 getCaptcha {
                     key
                     value
+                    url
                 }
             }
         `;
 
-        const {key, value} = (await this.graphqlRequest(query)).json().data.getCaptcha;
+        const {key, value, url} = (await this.graphqlRequest(query)).json().data.getCaptcha;
         this.pm.environment.set('captchaKey', key);
         this.pm.environment.set('captchaValue', value);
+        this.pm.environment.set('captchaUrl', url);
     }
 
     async companyInfo() {

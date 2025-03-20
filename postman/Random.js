@@ -190,8 +190,27 @@ class Random {
         return this.categories[category][this.randomInt(this.categories[category].length)];
     }
 
-    nit() {
+    nitWithoutConfecamaras() {
         return this.randomInt(1000, 7999).toString(10) + '00';
+    }
+
+    nit() {
+        const dni = this.randomInt(80000, 89999).toString(10) + this.randomInt(1000, 9999).toString(10);
+        return dni + '-' + this.calculateDv(dni);
+    }
+
+    calculateDv(dni) {
+        const primeNumbers = [0, 3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+        let accumulator = 0;
+        const documentLength = dni.length;
+        const document = dni.split('-');
+
+        for (let i = 0; i < documentLength; i++) {
+            const actualDigit = parseInt(document[0][i]);
+            accumulator += (actualDigit * primeNumbers[documentLength - i]);
+        }
+        accumulator %= 11;
+        return (accumulator > 1) ? 11 - accumulator : accumulator;
     }
 
 }
